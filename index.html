@@ -19,13 +19,13 @@
   <body class="container pt-5 pb-5">
     <div class="row">
       <div class="col-sm-4 order-2">
-        <div data-api="songle-widget-extra-module" data-url="www.youtube.com/watch?v=zweVJrnE1uY" id="songle-widget"></div>
-        <script src="https://widget.songle.jp/v1/widgets.js"></script>
+        <div id="songle-widget-container"></div>
+        <script src="https://widget.songle.jp/v1/api.js"></script>
 
         <div class="input-group mt-3">
           <input type="text" class="form-control" placeholder="追加したいセリフ" id="messageInput" />
           <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" id="addMessageButton">追加</button>
+            <button  type="button" class="btn btn-outline-secondary" id="addMessageButton">追加</button>
           </div>
         </div>
 
@@ -41,7 +41,7 @@
           </label>
         </div>
 
-        <button type="button" class="btn btn-primary btn-lg btn-block mt-3">リズムに合わせて押して登録</button>
+        <button type="button" class="btn btn-primary btn-lg btn-block mt-3" id="addSyncButton">リズムに合わせて押して登録</button>
       </div>
 
       <div class="col-sm-8 order-1">
@@ -50,7 +50,7 @@
         <div id="barscontainer">
           <table class="table table-striped table-bordered" id="bars">
             <thead class="thead-light">
-              <tr><th>小節番号</th><th colspan=10>拍</th></tr>
+              <tr><th>小節</th><th colspan=10>拍</th></tr>
             </thead>
           </table>
           <div>
