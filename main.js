@@ -10,12 +10,17 @@ window.onload = function(){
 }
 
 window.onSongleWidgetReady = function(apiKey, songleWidget){
-  songleWidget.volume = 30;
+  songleWidget.volume = document.getElementById("volumeRange").value;
   songleWidget.beatEventTimingOffset = -100;
   songleWidget.chorusSegmentEventTimingOffset =  -1000;
   songleWidget.eventPollingInterval = 10;
   console.log(songleWidget.song);
   createTable(songleWidget);
+
+  document.getElementById("volumeRange").onchange = e => {
+    console.log(e.target.value);
+    songleWidget.volume = e.target.value;
+  }
 
   songleWidget.on("play", function(e){
   });
@@ -86,7 +91,6 @@ function beatElementId(beat){ return 'beat' + beat.index; }
 function beatElement(beat){ return document.getElementById(beatElementId(beat)); }
 
 function isInChorus(t, song){
-  console.log(song.scene.chorusSegments[0].repeats);
   return song.scene.chorusSegments[0].repeats.some(c => t > c.start && t < c.start + c.duration);
 }
 
