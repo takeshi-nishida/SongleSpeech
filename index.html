@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="h-100">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,19 +8,16 @@
     <title>Songle + Speech</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <!--    <link href="./css/jpn.min.css" rel="stylesheet"> -->
-
-    <style>
-    #barscontainer {
-      height: 500px;
-      overflow-y: scroll;
-     }
-    </style>
   </head>
-  <body class="container pt-5 pb-5">
-    <div class="row">
+  <body class="container pt-5 pb-5 h-100">
+    <div class="row h-100">
       <div class="col-sm-4 order-2">
         <div id="songle-widget-container"></div>
         <script src="https://widget.songle.jp/v1/api.js"></script>
+
+        <select class="form-control mt-3" id="selectVoice"></select>
+
+        <button type="button" class="btn btn-primary btn-lg btn-block mt-3" id="addSyncButton">リズムに合わせて押して登録</button>
 
         <div class="input-group mt-3">
           <input type="text" class="form-control" placeholder="追加したいセリフ" id="messageInput" />
@@ -41,13 +38,10 @@
           </label>
         </div>
 
-        <button type="button" class="btn btn-primary btn-lg btn-block mt-3" id="addSyncButton">リズムに合わせて押して登録</button>
       </div>
 
-      <div class="col-sm-8 order-1">
-        <select class="form-control mb-5" id="selectVoice"></select>
-
-        <div id="barscontainer">
+      <div class="col-sm-8 order-1 h-100">
+        <div id="barscontainer" class="h-100 overflow-auto">
           <table class="table table-striped table-bordered" id="bars">
             <thead class="thead-light">
               <tr><th>小節</th><th colspan=10>拍</th></tr>

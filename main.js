@@ -51,6 +51,7 @@ function createTable(songleWidget){
   songleWidget.song.scene.bars.forEach(bar => {
     const tr = document.createElement('tr');
     const th = document.createElement('th');
+    if(isInChorus(bar.start, songleWidget.song)) th.classList.add('table-warning');
     const b = createBootstrapButton(bar.index);
     b.dataset.start = bar.start;
     th.appendChild(b);
@@ -83,6 +84,11 @@ function createTable(songleWidget){
 
 function beatElementId(beat){ return 'beat' + beat.index; }
 function beatElement(beat){ return document.getElementById(beatElementId(beat)); }
+
+function isInChorus(t, song){
+  console.log(song.scene.chorusSegments[0].repeats);
+  return song.scene.chorusSegments[0].repeats.some(c => t > c.start && t < c.start + c.duration);
+}
 
 //-----------------------------------------------------------------------------
 // User interface
