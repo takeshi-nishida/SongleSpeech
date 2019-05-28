@@ -1,4 +1,16 @@
 //-----------------------------------------------------------------------------
+// Settings
+//-----------------------------------------------------------------------------
+
+const defaultMessages = ["はい！", "おい！"];
+
+// Files should be put in the "sounds" folder.
+const audioFileNames = {
+  "👏" : "clap1.wav",
+  "👏👏" : "clap2.wav"
+};
+
+//-----------------------------------------------------------------------------
 // Songle Widget event handlers
 //-----------------------------------------------------------------------------
 let focusedElement;
@@ -7,6 +19,9 @@ window.onload = function(){
   const url = new URLSearchParams(new URL(location.href).search).get('url') || "www.youtube.com/watch?v=zweVJrnE1uY";
   const songleWidget = SongleWidgetAPI.createSongleWidgetElement({ api: "songle-widget-api", url });
   document.getElementById("songle-widget-container").appendChild(songleWidget);
+
+  loadAudioFiles();
+  loadDefaultMessages();
 }
 
 window.onSongleWidgetReady = function(apiKey, songleWidget){
@@ -30,7 +45,13 @@ window.onSongleWidgetReady = function(apiKey, songleWidget){
     el.classList.add('table-info');
     el.scrollIntoView(false);
     focusedElement = el;
-    if(el.dataset.message) speakImmediately(el.dataset.message);
+    const call = calls[el.id];
+    if(call){
+      switch(call.type){
+        case "text": speakImmediately(call.utterance); break;
+        case "audio": call.audio.play(); break;
+      }
+    }
   });
 
   songleWidget.on("beatLeave", function(e){
@@ -74,7 +95,7 @@ function createTable(songleWidget){
   table.onclick = e => {
     switch(event.target.tagName){
       case 'TD':
-        setMessageToElement(getSelectedCallMessage(), event.target);
+        setCallToElement(getSelectedCall(), event.target);
         break;
       case 'BUTTON':
         if(!event.target.dataset.start) break;
@@ -102,34 +123,39 @@ document.getElementById('addMessageButton').onclick = e => {
   const messageInput = document.getElementById('messageInput');
   const t = messageInput.value;
   if(!t) return;
-  const u = getUtterance(t);
-  speakImmediately(u);
+  speakImmediately(t);
   messageInput.value = '';
 
-  const messages = document.getElementById('messages');
-  const n = messages.querySelector('label').cloneNode(true);
-  n.classList.remove('d-none');
-  n.lastChild.textContent = t;
-  messages.appendChild(n);
+  const select = document.getElementById("messages");
+  addOption(select, t, t);
 }
 
 document.getElementById('addSyncButton').onclick = e => {
-  if(focusedElement) setMessageToElement(getSelectedCallMessage(), focusedElement);
+  if(focusedElement) setCallToElement(getSelectedCall(), focusedElement);
 }
 
-function getSelectedCallMessage(){
-  return document.querySelector('[name=calls]:checked').labels[0].textContent.trim();
+document.addEventListener('keydown', e => {
+  const index = parseInt(e.key);
+  const call = getNthCall(index - 1);
+  if(call){
+    if(focusedElement) setCallToElement(call, focusedElement);
+    document.getElementById("messages").value = call.key;
+  }
+});
+
+function getSelectedCall(){
+  return callItems[document.getElementById("messages").value];
 }
 
-function setMessageToElement(t, el){
-  if(el.dataset.message == t){
-    el.textContent = el.dataset.position;
-    el.dataset.message = null;
-  }
-  else{
-    el.textContent = t;
-    el.dataset.message = t;
-  }
+function getNthCall(n){
+  return callItems[document.getElementById("messages").children[n].value];
+}
+
+function setCallToElement(callItem, el){
+  const id = el.id;
+  if(!calls[id]) calls[id] = {};
+  calls[id] = callItem;
+  el.textContent = callItem.key;
 }
 
 function createBootstrapButton(label){
@@ -140,11 +166,20 @@ function createBootstrapButton(label){
   return b;
 }
 
+function addOption(select, text, value){
+  const o = document.createElement('option');
+  o.textContent = "(" + (select.childElementCount + 1) + ") " + text;
+  o.value = value;
+  select.appendChild(o);
+  return o;
+}
+
 //-----------------------------------------------------------------------------
-// Speech Synthesis utility functions
+// Calls
 //-----------------------------------------------------------------------------
 
-const utterances = {};
+let calls = {};
+const callItems = {};
 
 speechSynthesis.onvoiceschanged = e => {
   const select = document.getElementById("selectVoice");
@@ -156,25 +191,43 @@ speechSynthesis.onvoiceschanged = e => {
   })
 }
 
-function getUtterance(text){
-  if(utterances[text]) return utterances[text];
+function loadDefaultMessages(){
+  const select = document.getElementById("messages");
+  defaultMessages.forEach(m => {
+    createUtterance(m);
+    const o = addOption(select, m, m);
+  });
+}
+
+function createUtterance(text){
+  if(callItems[text]) return;
   const select = document.getElementById("selectVoice");
   const u = new SpeechSynthesisUtterance(text);
   u.voice = speechSynthesis.getVoices().find(v => v.name == select.value);
-  u.rate = 5;
-  u.pitch = 0;
-  utterances[text] = u;
+  u.rate = 4;
+//  u.pitch = 0;
+  callItems[text] = { type: "text", key: text, utterance: u };
   return u;
 }
 
-function speakImmediately(t){
-  const u = getUtterance(t);
+function speakImmediately(u){
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
 
-function speakModestly(t){
+function speakModestly(u){
   if(speechSynthesis.speaking || speechSynthesis.pending) return;
-  const u = getUtterance(t);
   speechSynthesis.speak(u);
+}
+
+function loadAudioFiles(){
+  const select = document.getElementById("messages");
+  Object.keys(audioFileNames).forEach(key => {
+    const name = audioFileNames[key];
+    const a = new Audio();
+    a.src = "./sounds/" + name;
+    a.load();
+    callItems[key] = { type: "audio", key: key, audio: a };
+    const o = addOption(select, key, key);
+  });
 }
