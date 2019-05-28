@@ -135,7 +135,9 @@ document.getElementById('addSyncButton').onclick = e => {
 }
 
 document.addEventListener('keydown', e => {
+  if(e.target.tagName != "BODY") return;
   const index = parseInt(e.key);
+  if(!index) return;
   const call = getNthCall(index - 1);
   if(call){
     if(focusedElement) setCallToElement(call, focusedElement);
