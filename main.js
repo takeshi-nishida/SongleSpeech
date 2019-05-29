@@ -33,7 +33,6 @@ window.onSongleWidgetReady = function(apiKey, songleWidget){
   createTable(songleWidget);
 
   document.getElementById("volumeRange").onchange = e => {
-    console.log(e.target.value);
     songleWidget.volume = e.target.value;
   }
 
@@ -123,9 +122,8 @@ document.getElementById('addMessageButton').onclick = e => {
   const messageInput = document.getElementById('messageInput');
   const t = messageInput.value;
   if(!t) return;
-  speakImmediately(t);
+  speakImmediately(createUtterance(t));
   messageInput.value = '';
-
   const select = document.getElementById("messages");
   addOption(select, t, t);
 }
@@ -202,7 +200,7 @@ function loadDefaultMessages(){
 }
 
 function createUtterance(text){
-  if(callItems[text]) return;
+  if(callItems[text]) return callItems[text].utterance;
   const select = document.getElementById("selectVoice");
   const u = new SpeechSynthesisUtterance(text);
   u.voice = speechSynthesis.getVoices().find(v => v.name == select.value);
