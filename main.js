@@ -96,6 +96,12 @@ function createTable(songleWidget){
       case 'TD':
         setCallToElement(getSelectedCall(), event.target);
         break;
+      case 'TH':
+      　let span = event.target.querySelector('span');
+        if(!span) span = document.createElement('span');
+        if(!span.textContent) span.textContent = '編集可能テキスト';
+        span.setAttribute('contentEditable', true);
+        event.target.appendChild(span);
       case 'BUTTON':
         if(!event.target.dataset.start) break;
         const wasPlaying = songleWidget.isPlaying;
@@ -161,7 +167,7 @@ function setCallToElement(callItem, el){
 function createBootstrapButton(label){
   const b = document.createElement('button');
   b.setAttribute('type', 'button');
-  b.classList.add('btn', 'btn-outline-primary');
+  b.classList.add('btn', 'btn-outline-primary', 'mx-1');
   b.textContent = label;
   return b;
 }
