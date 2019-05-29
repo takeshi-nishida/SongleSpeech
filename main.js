@@ -45,12 +45,15 @@ window.onSongleWidgetReady = function(apiKey, songleWidget){
     el.scrollIntoView(false);
     focusedElement = el;
     const call = calls[el.id];
-    if(call){
-      switch(call.type){
-        case "text": speakImmediately(call.utterance); break;
-        case "audio": call.audio.play(); break;
+    if(!call) return;
+    Object.values(call).forEach(c => {
+      switch(c.type){
+        case "text": speakImmediately(c.utterance); break;
+        case "audio":
+          c.audio.currentTime = 0;
+          c.audio.play(); break;
       }
-    }
+    });
   });
 
   songleWidget.on("beatLeave", function(e){
@@ -160,8 +163,10 @@ function getNthCall(n){
 function setCallToElement(callItem, el){
   const id = el.id;
   if(!calls[id]) calls[id] = {};
-  calls[id] = callItem;
-  el.textContent = callItem.key;
+  const call = calls[id];
+  if(call[callItem.type] && call[callItem.type].key == callItem.key) delete call[callItem.type];
+  else call[callItem.type] = callItem;
+  el.textContent = Object.values(call).map(c => c.key).join(" / ");
 }
 
 function createBootstrapButton(label){
@@ -210,8 +215,9 @@ function createUtterance(text){
   const select = document.getElementById("selectVoice");
   const u = new SpeechSynthesisUtterance(text);
   u.voice = speechSynthesis.getVoices().find(v => v.name == select.value);
+  u.volume = 1;
   u.rate = 4;
-//  u.pitch = 0;
+  u.pitch = 2;
   callItems[text] = { type: "text", key: text, utterance: u };
   return u;
 }
