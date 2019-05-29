@@ -10,13 +10,17 @@ const audioFileNames = {
   "👏👏" : "clap2.wav"
 };
 
+function getVideoUrl(){
+  return new URLSearchParams(new URL(location.href).search).get('url') || "www.youtube.com/watch?v=zweVJrnE1uY";
+}
+
 //-----------------------------------------------------------------------------
 // Songle Widget event handlers
 //-----------------------------------------------------------------------------
 let focusedElement;
 
 window.onload = function(){
-  const url = new URLSearchParams(new URL(location.href).search).get('url') || "www.youtube.com/watch?v=zweVJrnE1uY";
+  const url = getVideoUrl();
   const songleWidget = SongleWidgetAPI.createSongleWidgetElement({ api: "songle-widget-api", url });
   document.getElementById("songle-widget-container").appendChild(songleWidget);
 
@@ -79,10 +83,16 @@ function createTable(songleWidget){
   songleWidget.song.scene.bars.forEach(bar => {
     const tr = document.createElement('tr');
     const th = document.createElement('th');
+    th.id = 'bar' + bar.index;
     if(isInChorus(bar.start, songleWidget.song)) th.classList.add('table-warning');
     const b = createBootstrapButton(bar.index);
     b.dataset.start = bar.start;
     th.appendChild(b);
+    const span = document.createElement('span');
+    span.classList.add('memo');
+    span.dataset.barId = th.id;
+    span.setAttribute('contentEditable', true);
+    th.appendChild(span);
     tr.appendChild(th);
     bar.beats.forEach(beat => {
       const td = document.createElement('td');
@@ -101,10 +111,7 @@ function createTable(songleWidget){
         break;
       case 'TH':
       　let span = event.target.querySelector('span');
-        if(!span) span = document.createElement('span');
         if(!span.textContent) span.textContent = '編集可能テキスト';
-        span.setAttribute('contentEditable', true);
-        event.target.appendChild(span);
       case 'BUTTON':
         if(!event.target.dataset.start) break;
         const wasPlaying = songleWidget.isPlaying;
@@ -183,6 +190,45 @@ function addOption(select, text, value){
   o.value = value;
   select.appendChild(o);
   return o;
+}
+
+//-----------------------------------------------------------------------------
+// Save & Load
+//-----------------------------------------------------------------------------
+document.getElementById('saveButton').onclick = e => {
+  const url = getVideoUrl();
+  const memos = {};
+  document.querySelectorAll('.memo')
+    .forEach(span => { if(span.textContent) memos[span.dataset.barId] = span.textContent; })
+  const json = JSON.stringify({ calls, callItems, memos });
+  console.log(json);
+  localStorage.setItem(url, json);
+}
+
+document.getElementById('loadButton').onclick = e => {
+  const url = getVideoUrl();
+  const json = localStorage.getItem(url);
+  const o = JSON.parse(json);
+
+  // reconstruct call items
+  const select = document.getElementById("messages");
+  Object.values(o.callItems)
+    .filter(c => c.type == "text" && !defaultMessages.includes(c.key))
+    .map(c => c.key)
+    .forEach(t => { createUtterance(t); addOption(select, t, t); });
+
+  // reconstruct calls
+  Object.keys(o.calls).forEach(beatId => {
+    const el = document.getElementById(beatId);
+    const call = o.calls[beatId];
+    Object.values(call).forEach(c => setCallToElement(callItems[c.key], el));
+  });
+
+  // reconstruct memos
+  Object.keys(o.memos).forEach(barId => {
+    const span = document.getElementById(barId).querySelector('span');
+    span.textContent = o.memos[barId];
+  });
 }
 
 //-----------------------------------------------------------------------------
